@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import queue
 import socket
@@ -8,6 +9,8 @@ import certifi
 
 import paho.mqtt.client as paho
 from paho import mqtt
+
+import subboard
 
 
 def mqtt_subscriber(client: paho.Client, events: queue.Queue) -> None:
@@ -30,17 +33,30 @@ def board_manager(events: queue.Queue) -> None:
     """This thread takes events from the events queue and changes
     the board display accordingly.
     """
+    match = subboard.Match()
+    score_stringer = subboard.BasicScoreStringer()
+
     while True:
         try:
             event = events.get_nowait()
         except queue.Empty:
             # No message currently available
-            pass
+            if match.status == "scheduled":
+                print(datetime.now())
+            elif match.status == "started":
+                remaining = match.clock.value()
+                if remaining == 0:
+                    # The match is over
+                    return
+                print(subboard.format_remaining(remaining))
+                print(score_stringer.to_string(match.score))
         else:
             print("processing event", event)
-            if event["type"] == "ft":
-                # Final time
-                return
+            if event["type"] == "ko":
+                # Kick-off
+                match.start(event.get("duration", 600))
+            elif event["type"] == "goal":
+                match.goal(event.get("who"))
 
         time.sleep(.1)
 
