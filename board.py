@@ -34,7 +34,7 @@ def board_manager(events: queue.Queue) -> None:
     the board display accordingly.
     """
     match = subboard.Match()
-    score_stringer = subboard.BasicScoreStringer()
+    display = subboard.TerminalDisplay()
 
     while True:
         try:
@@ -48,8 +48,7 @@ def board_manager(events: queue.Queue) -> None:
                 if remaining == 0:
                     # The match is over
                     return
-                print(subboard.format_remaining(remaining))
-                print(score_stringer.to_string(match.score))
+                display.update(match)
         else:
             print("processing event", event)
             if event["type"] == "ko":
