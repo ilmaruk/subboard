@@ -31,7 +31,10 @@ class TerminalDisplay(Display):
             print(now_str + "]", self._score_stringer.to_string(match.score))
 
 
-def format_remaining(value: int) -> str:
-    minutes = int(value / 60)
-    seconds = int(value % 60)
-    return f"{minutes:02d}:{seconds:02d}"
+def format_remaining(value: float) -> str:
+    if value >= 60:
+        minutes = int(value / 60)
+        seconds = int(value % 60)
+        return f"{minutes:02d}:{seconds:02d}"
+
+    return f"{value:02.02f}"

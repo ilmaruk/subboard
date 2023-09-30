@@ -45,7 +45,7 @@ def board_manager(events: queue.Queue) -> None:
                 print(datetime.now())
             elif match.status == "started":
                 remaining = match.clock.value()
-                if remaining == 0:
+                if remaining <= 0:
                     # The match is over
                     return
                 display.update(match)
