@@ -9,13 +9,13 @@ class Clock(typing.Protocol):
     def restart(self) -> None:
         ...
 
-    def pause(self) -> float:
+    def pause(self) -> None:
         ...
 
-    def resume(self) -> float:
+    def resume(self) -> None:
         ...
 
-    def stop(self) -> float:
+    def stop(self) -> None:
         ...
 
     def current(self, now=None) -> float:
