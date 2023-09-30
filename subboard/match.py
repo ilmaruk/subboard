@@ -3,9 +3,9 @@ from .score import Score
 
 
 class Match:
-    def __init__(self) -> None:
+    def __init__(self, clock: Clock) -> None:
         self.status = "scheduled"
-        self.clock = Clock()
+        self.clock = clock
         self.score = Score()
 
     def start(self, duration: int) -> None:

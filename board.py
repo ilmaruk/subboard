@@ -34,7 +34,8 @@ def board_manager(events: queue.Queue) -> None:
     """This thread takes events from the events queue and changes
     the board display accordingly.
     """
-    match = subboard.Match()
+    clock = subboard.DescendingClock()
+    match = subboard.Match(clock)
     display = subboard.TerminalDisplay()
 
     while True:
@@ -45,7 +46,7 @@ def board_manager(events: queue.Queue) -> None:
             if match.status == "scheduled":
                 print(datetime.now())
             elif match.status == "started":
-                remaining = match.clock.value()
+                remaining = match.clock.current()
                 if remaining <= 0:
                     # The match is over
                     return

@@ -50,6 +50,10 @@ class ScoreEvent(Event):
         super().__init__(message)
 
     @property
+    def who(self):
+        return self.__dict__.get("who")
+
+    @property
     def qty(self):
         return self.__dict__.get("qty", 1)
 
