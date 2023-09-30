@@ -11,6 +11,7 @@ import paho.mqtt.client as paho
 from paho import mqtt
 
 import subboard
+from subboard.events import event_factory, EventType, Event
 
 
 def mqtt_subscriber(client: paho.Client, events: queue.Queue) -> None:
@@ -19,7 +20,7 @@ def mqtt_subscriber(client: paho.Client, events: queue.Queue) -> None:
     """
     def on_message(client, userdata, message: paho.MQTTMessage) -> None:
         print("got message", message)
-        event = json.loads(message.payload.decode())
+        event = event_factory(message.payload.decode())
         events.put(event)
 
     client.on_message = on_message
@@ -38,7 +39,7 @@ def board_manager(events: queue.Queue) -> None:
 
     while True:
         try:
-            event = events.get_nowait()
+            event = events.get_nowait()  # type: Event
         except queue.Empty:
             # No message currently available
             if match.status == "scheduled":
@@ -51,11 +52,11 @@ def board_manager(events: queue.Queue) -> None:
                 display.update(match)
         else:
             print("processing event", event)
-            if event["type"] == "ko":
+            if event.type == EventType.KICK_OFF:
                 # Kick-off
-                match.start(event.get("duration", 600))
-            elif event["type"] == "goal":
-                match.goal(event.get("who"))
+                match.start(event.duration)
+            elif event.type == EventType.SCORE:
+                match.goal(event.who)
 
         time.sleep(.1)
 
