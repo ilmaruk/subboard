@@ -1,12 +1,12 @@
 from datetime import datetime
-import json
+import os
 import queue
 import socket
 import threading
 import time
 
 import certifi
-
+from dotenv import load_dotenv
 import paho.mqtt.client as paho
 from paho import mqtt
 
@@ -62,13 +62,16 @@ def board_manager(events: queue.Queue) -> None:
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
     client = paho.Client(client_id=socket.gethostname(), userdata=None,
                          protocol=paho.MQTTv5)
 
     client.tls_set(ca_certs=certifi.where(),
                    tls_version=mqtt.client.ssl.PROTOCOL_TLS)
-    client.username_pw_set("pizero", "E4Gq@pz8PwfdJYN")
-    client.connect("cf63c06cf56d42f391e1bfc520cda10b.s2.eu.hivemq.cloud", 8883)
+    client.username_pw_set(os.getenv("MQTT_USERNAME"),
+                           os.getenv("MQTT_PASSWORD"))
+    client.connect(os.getenv("MQTT_HOST"), int(os.getenv("MQTT_PORT")))
 
     client.subscribe("subboard/#", qos=1)
 
