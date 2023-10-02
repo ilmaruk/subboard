@@ -15,6 +15,7 @@ class TerminalDisplay(Display):
         self._score_stringer = BasicScoreStringer()
         self._what = "clock"
         self._since = None
+        self._previous_update = None
 
     def update(self, match: Match) -> None:
         now = datetime.datetime.now()
@@ -26,9 +27,13 @@ class TerminalDisplay(Display):
 
         now_str = str(now)
         if self._what == "clock":
-            print(now_str + "]", format_remaining(match.clock.current()))
+            update = format_remaining(match.clock.current())
         elif self._what == "score":
-            print(now_str + "]", self._score_stringer.to_string(match.score))
+            update = self._score_stringer.to_string(match.score)
+
+        if update != self._previous_update:
+            print(str(now) + "]", update)
+            self._previous_update = update
 
 
 def format_remaining(value: float) -> str:
