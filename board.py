@@ -74,8 +74,8 @@ if __name__ == "__main__":
 
     client.tls_set(ca_certs=certifi.where(),
                    tls_version=mqtt.client.ssl.PROTOCOL_TLS)
-    client.username_pw_set(os.getenv("MQTT_USERNAME"),
-                           os.getenv("MQTT_PASSWORD"))
+    client.username_pw_set(os.getenv("MQTT_USERNAME_PIZERO"),
+                           os.getenv("MQTT_PASSWORD_PIZERO"))
     client.connect(os.getenv("MQTT_HOST"), int(os.getenv("MQTT_PORT")))
 
     client.subscribe("subboard/#", qos=1)
