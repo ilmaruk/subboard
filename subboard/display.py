@@ -6,6 +6,9 @@ from .score import BasicScoreStringer
 
 
 class Display(typing.Protocol):
+    def set(self, text: str) -> None:
+        ...
+
     def update(self) -> None:
         ...
 
@@ -17,6 +20,9 @@ class TerminalDisplay(Display):
         self._since = None
         self._previous_update = None
 
+    def set(self, text: str) -> None:
+        self._update(text)
+
     def update(self, match: Match) -> None:
         now = datetime.datetime.now()
         if self._since is None:
@@ -25,15 +31,17 @@ class TerminalDisplay(Display):
             self._since = now
             self._what = "clock" if self._what == "score" else "score"
 
-        now_str = str(now)
         if self._what == "clock":
             update = format_remaining(match.clock.current())
         elif self._what == "score":
             update = self._score_stringer.to_string(match.score)
 
-        if update != self._previous_update:
-            print(str(now) + "]", update)
-            self._previous_update = update
+        self._update(update)
+
+    def _update(self, text: str) -> None:
+        if text != self._previous_update:
+            print(str(datetime.datetime.now()) + "]", text)
+            self._previous_update = text
 
 
 def format_remaining(value: float) -> str:

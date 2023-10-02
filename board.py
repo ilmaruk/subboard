@@ -5,13 +5,13 @@ import socket
 import threading
 import time
 
-import certifi
 from dotenv import load_dotenv
 import paho.mqtt.client as paho
-from paho import mqtt
 
 import subboard
-from subboard.events import event_factory, EventType, Event
+from subboard.mqtt import connect
+from subboard.events import event_factory, Event
+from subboard.states import States
 
 
 def mqtt_subscriber(client: paho.Client, events: queue.Queue) -> None:
@@ -36,6 +36,8 @@ def board_manager(events: queue.Queue) -> None:
     """
     clock = subboard.DescendingClock()
     match = subboard.Match(clock)
+    state = subboard.BeforeMatchState(match)
+
     display = subboard.TerminalDisplay()
 
     while True:
@@ -43,25 +45,22 @@ def board_manager(events: queue.Queue) -> None:
             event = events.get_nowait()  # type: Event
         except queue.Empty:
             # No message currently available
-            if match.status == "scheduled":
-                print(datetime.now())
-            elif match.status == "started":
-                remaining = match.clock.current()
-                if remaining <= 0:
-                    # The match is over
-                    return
-                display.update(match)
+            pass
         else:
             print("processing event", event)
-            if event.type == EventType.KICK_OFF:
-                # Kick-off
-                match.start(event.duration)
-            elif event.type == EventType.PAUSE:
-                match.clock.pause()
-            elif event.type == EventType.RESUME:
-                match.clock.resume()
-            elif event.type == EventType.SCORE:
-                match.goal(event.who)
+            state = state.process_event(event)
+
+        if state.type == States.BEFORE_MATCH:
+            display.set(datetime.now().strftime("%H:%M:%S"))
+        elif state.type == States.AFTER_MATCH:
+            display.set("FT")
+        elif state.type == States.DURING_MATCH:
+            remaining = match.clock.current()
+            if remaining <= 0:
+                # The match is over
+                events.put(Event('{"type":"stop"}'))
+
+            display.update(match)
 
         time.sleep(.1)
 
@@ -69,15 +68,8 @@ def board_manager(events: queue.Queue) -> None:
 if __name__ == "__main__":
     load_dotenv()
 
-    client = paho.Client(client_id=socket.gethostname(), userdata=None,
-                         protocol=paho.MQTTv5)
-
-    client.tls_set(ca_certs=certifi.where(),
-                   tls_version=mqtt.client.ssl.PROTOCOL_TLS)
-    client.username_pw_set(os.getenv("MQTT_USERNAME_PIZERO"),
-                           os.getenv("MQTT_PASSWORD_PIZERO"))
-    client.connect(os.getenv("MQTT_HOST"), int(os.getenv("MQTT_PORT")))
-
+    client = connect(socket.gethostname(), os.getenv("MQTT_HOST"), int(os.getenv(
+        "MQTT_PORT")), os.getenv("MQTT_USERNAME_PIZERO"), os.getenv("MQTT_PASSWORD_PIZERO"))
     client.subscribe("subboard/#", qos=1)
 
     events = queue.Queue()
