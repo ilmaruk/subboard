@@ -56,6 +56,10 @@ def board_manager(events: queue.Queue) -> None:
             if event.type == EventType.KICK_OFF:
                 # Kick-off
                 match.start(event.duration)
+            elif event.type == EventType.PAUSE:
+                match.clock.pause()
+            elif event.type == EventType.RESUME:
+                match.clock.resume()
             elif event.type == EventType.SCORE:
                 match.goal(event.who)
 

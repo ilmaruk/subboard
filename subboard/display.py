@@ -26,7 +26,7 @@ class TerminalDisplay(Display):
 
         now_str = str(now)
         if self._what == "clock":
-            print(now_str + "]", format_remaining(match.clock.value()))
+            print(now_str + "]", format_remaining(match.clock.current()))
         elif self._what == "score":
             print(now_str + "]", self._score_stringer.to_string(match.score))
 
